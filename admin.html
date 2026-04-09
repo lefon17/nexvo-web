@@ -116,21 +116,24 @@
     renderUsers();
   }
 
+  async function getSignedUrl(userId, fileName) {
+    const { data, error } = await db.storage
+      .from('verification-docs')
+      .createSignedUrl(userId + '/' + fileName, 60 * 60); // 1 hora
+    if (error || !data) return null;
+    return data.signedUrl;
+  }
+
   async function loadUsers() {
     const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false });
     allUsers = data || [];
     document.getElementById('statPending').textContent = allUsers.filter(u => u.verification_status === 'pending').length;
     document.getElementById('statVerified').textContent = allUsers.filter(u => u.verified).length;
     document.getElementById('statTotal').textContent = allUsers.length;
-    renderUsers();
+    await renderUsers();
   }
 
-  function getPhotoUrl(userId, fileName) {
-    const { data } = db.storage.from('verification-docs').getPublicUrl(userId + '/' + fileName);
-    return data.publicUrl;
-  }
-
-  function renderUsers() {
+  async function renderUsers() {
     let users = allUsers;
     if (currentTab === 'pending') users = allUsers.filter(u => u.verification_status === 'pending');
     if (currentTab === 'verified') users = allUsers.filter(u => u.verified);
@@ -141,10 +144,23 @@
       return;
     }
 
-    list.innerHTML = users.map(function(user) {
-      const frontUrl = getPhotoUrl(user.id, 'cedula-frente.jpg');
-      const backUrl = getPhotoUrl(user.id, 'cedula-reverso.jpg');
-      const selfieUrl = getPhotoUrl(user.id, 'selfie.jpg');
+    list.innerHTML = '<div class="empty">Cargando fotos...</div>';
+
+    const cards = await Promise.all(users.map(async function(user) {
+      const frontUrl = await getSignedUrl(user.id, 'cedula-frente.jpg');
+      const backUrl = await getSignedUrl(user.id, 'cedula-reverso.jpg');
+      const selfieUrl = await getSignedUrl(user.id, 'selfie.jpg');
+
+      function photoBox(url, label) {
+        return '<div>' +
+          '<div class="photo-label">' + label + '</div>' +
+          '<div class="photo-box"' + (url ? ' onclick="openModal(\'' + url + '\')"' : '') + '>' +
+          (url
+            ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" />'
+            : '<div class="no-photo">Sin foto</div>') +
+          '</div></div>';
+      }
+
       return '<div class="card">' +
         '<div class="card-header">' +
           '<div><div class="user-name">' + (user.full_name || 'Sin nombre') + '</div>' +
@@ -153,21 +169,17 @@
           (user.verified ? '✅ Verificado' : '⏳ Pendiente') + '</span>' +
         '</div>' +
         '<div class="photos">' +
-          '<div><div class="photo-label">Cédula — Frente</div>' +
-          '<div class="photo-box" onclick="openModal(\'' + frontUrl + '\')">' +
-          '<img src="' + frontUrl + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" /></div></div>' +
-          '<div><div class="photo-label">Cédula — Reverso</div>' +
-          '<div class="photo-box" onclick="openModal(\'' + backUrl + '\')">' +
-          '<img src="' + backUrl + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" /></div></div>' +
-          '<div><div class="photo-label">Selfie</div>' +
-          '<div class="photo-box" onclick="openModal(\'' + selfieUrl + '\')">' +
-          '<img src="' + selfieUrl + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" /></div></div>' +
+          photoBox(frontUrl, 'Cédula — Frente') +
+          photoBox(backUrl, 'Cédula — Reverso') +
+          photoBox(selfieUrl, 'Selfie') +
         '</div>' +
         '<div class="actions">' +
           (!user.verified ? '<button class="btn btn-green btn-small" onclick="approveUser(\'' + user.id + '\')">✓ Aprobar</button>' : '') +
           (user.verified ? '<button class="btn btn-red btn-small" onclick="rejectUser(\'' + user.id + '\')">✕ Revocar</button>' : '') +
         '</div></div>';
-    }).join('');
+    }));
+
+    list.innerHTML = cards.join('');
   }
 
   async function approveUser(userId) {
