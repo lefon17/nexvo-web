@@ -16,7 +16,6 @@
     .btn { width: 100%; background: #5B6BF8; color: white; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
     .btn:hover { background: #4a5ae0; }
     .btn-green { background: #1EEBB4; color: #07070F; }
-    .btn-green:hover { background: #18cc9a; }
     .btn-red { background: rgba(255,75,110,0.2); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.3); }
     .btn-small { width: auto; padding: 8px 16px; font-size: 12px; border-radius: 8px; }
     .dashboard { padding: 24px; max-width: 1000px; margin: 0 auto; }
@@ -32,7 +31,7 @@
     .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
     .photo-box { aspect-ratio: 4/3; background: #181828; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); }
     .photo-box img { width: 100%; height: 100%; object-fit: cover; }
-    .photo-box .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #5A5A7A; font-size: 12px; }
+    .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #5A5A7A; font-size: 12px; }
     .photo-label { font-size: 11px; color: #5A5A7A; margin-bottom: 6px; }
     .actions { display: flex; gap: 10px; }
     .empty { text-align: center; padding: 60px; color: #5A5A7A; }
@@ -51,50 +50,35 @@
 </head>
 <body>
 
-<!-- Login -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <h1>Nexvo Admin</h1>
     <p>Panel de administración</p>
-    <input type="password" id="adminPassword" placeholder="Contraseña de admin" />
-    <button class="btn" onclick="checkPassword()">Entrar</button>
+    <input type="password" id="adminPassword" placeholder="Contraseña de admin" onkeypress="if(event.key==='Enter') checkPassword()" />
+    <button class="btn" id="loginBtn">Entrar</button>
   </div>
 </div>
 
-<!-- Dashboard -->
 <div class="dashboard" id="dashboard" style="display:none">
   <div class="header">
     <h1>🛡️ Nexvo Admin</h1>
-    <button class="btn btn-small" onclick="logout()" style="background:rgba(255,75,110,0.2);color:#FF4B6E;border:1px solid rgba(255,75,110,0.3)">Salir</button>
+    <button class="btn btn-small btn-red" id="logoutBtn">Salir</button>
   </div>
-
   <div class="stats">
-    <div class="stat-card">
-      <div class="stat-val" id="statPending">-</div>
-      <div class="stat-lbl">Pendientes</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val" id="statVerified">-</div>
-      <div class="stat-lbl">Verificados</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val" id="statTotal">-</div>
-      <div class="stat-lbl">Total usuarios</div>
-    </div>
+    <div class="stat-card"><div class="stat-val" id="statPending">-</div><div class="stat-lbl">Pendientes</div></div>
+    <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Verificados</div></div>
+    <div class="stat-card"><div class="stat-val" id="statTotal">-</div><div class="stat-lbl">Total usuarios</div></div>
   </div>
-
   <div class="tabs">
-    <div class="tab active" onclick="setTab('pending')">⏳ Pendientes</div>
-    <div class="tab" onclick="setTab('verified')">✅ Verificados</div>
-    <div class="tab" onclick="setTab('all')">👥 Todos</div>
+    <div class="tab active" id="tab-pending">⏳ Pendientes</div>
+    <div class="tab" id="tab-verified">✅ Verificados</div>
+    <div class="tab" id="tab-all">👥 Todos</div>
   </div>
-
   <div id="usersList"></div>
 </div>
 
-<!-- Modal foto -->
-<div class="modal" id="photoModal" onclick="closeModal()">
-  <div class="modal-close">✕</div>
+<div class="modal" id="photoModal">
+  <div class="modal-close" id="modalClose">✕</div>
   <img id="modalImg" src="" />
 </div>
 
@@ -102,7 +86,8 @@
   const SUPABASE_URL = 'https://httbdrbtgepoplqsrhyk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dGJkcmJ0Z2Vwb3BscXNyaHlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODYxNjQsImV4cCI6MjA5MTA2MjE2NH0.FFCKj6M3PDVPBMqXI2Wqk3lzacmDwlzLyr-_YJSTYEc';
   const ADMIN_PASSWORD = 'nexvo2026admin';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentTab = 'pending';
   let allUsers = [];
@@ -127,19 +112,22 @@
   function setTab(tab) {
     currentTab = tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
     renderUsers();
   }
 
   async function loadUsers() {
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+    const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false });
     allUsers = data || [];
-    
     document.getElementById('statPending').textContent = allUsers.filter(u => u.verification_status === 'pending').length;
     document.getElementById('statVerified').textContent = allUsers.filter(u => u.verified).length;
     document.getElementById('statTotal').textContent = allUsers.length;
-    
     renderUsers();
+  }
+
+  function getPhotoUrl(userId, fileName) {
+    const { data } = db.storage.from('verification-docs').getPublicUrl(userId + '/' + fileName);
+    return data.publicUrl;
   }
 
   function renderUsers() {
@@ -148,73 +136,49 @@
     if (currentTab === 'verified') users = allUsers.filter(u => u.verified);
 
     const list = document.getElementById('usersList');
-    
     if (users.length === 0) {
       list.innerHTML = '<div class="empty">No hay usuarios en esta categoría</div>';
       return;
     }
 
-    list.innerHTML = users.map(user => {
+    list.innerHTML = users.map(function(user) {
       const frontUrl = getPhotoUrl(user.id, 'cedula-frente.jpg');
       const backUrl = getPhotoUrl(user.id, 'cedula-reverso.jpg');
       const selfieUrl = getPhotoUrl(user.id, 'selfie.jpg');
-      
-      return `
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="user-name">${user.full_name || 'Sin nombre'}</div>
-              <div class="user-email">${user.email || ''}</div>
-            </div>
-            <span class="badge ${user.verified ? 'badge-verified' : 'badge-pending'}">
-              ${user.verified ? '✅ Verificado' : '⏳ Pendiente'}
-            </span>
-          </div>
-          
-          <div class="photos">
-            <div>
-              <div class="photo-label">Cédula — Frente</div>
-              <div class="photo-box" onclick="openModal('${frontUrl}')">
-                <img src="${frontUrl}" onerror="this.parentElement.innerHTML='<div class=no-photo>Sin foto</div>'" />
-              </div>
-            </div>
-            <div>
-              <div class="photo-label">Cédula — Reverso</div>
-              <div class="photo-box" onclick="openModal('${backUrl}')">
-                <img src="${backUrl}" onerror="this.parentElement.innerHTML='<div class=no-photo>Sin foto</div>'" />
-              </div>
-            </div>
-            <div>
-              <div class="photo-label">Selfie con documento</div>
-              <div class="photo-box" onclick="openModal('${selfieUrl}')">
-                <img src="${selfieUrl}" onerror="this.parentElement.innerHTML='<div class=no-photo>Sin foto</div>'" />
-              </div>
-            </div>
-          </div>
-          
-          <div class="actions">
-            ${!user.verified ? `<button class="btn btn-green btn-small" onclick="approveUser('${user.id}')">✓ Aprobar viajero</button>` : ''}
-            ${user.verified ? `<button class="btn btn-red btn-small" onclick="rejectUser('${user.id}')">✕ Revocar verificación</button>` : ''}
-          </div>
-        </div>
-      `;
+      return '<div class="card">' +
+        '<div class="card-header">' +
+          '<div><div class="user-name">' + (user.full_name || 'Sin nombre') + '</div>' +
+          '<div class="user-email">' + (user.email || '') + '</div></div>' +
+          '<span class="badge ' + (user.verified ? 'badge-verified' : 'badge-pending') + '">' +
+          (user.verified ? '✅ Verificado' : '⏳ Pendiente') + '</span>' +
+        '</div>' +
+        '<div class="photos">' +
+          '<div><div class="photo-label">Cédula — Frente</div>' +
+          '<div class="photo-box" onclick="openModal(\'' + frontUrl + '\')">' +
+          '<img src="' + frontUrl + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" /></div></div>' +
+          '<div><div class="photo-label">Cédula — Reverso</div>' +
+          '<div class="photo-box" onclick="openModal(\'' + backUrl + '\')">' +
+          '<img src="' + backUrl + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" /></div></div>' +
+          '<div><div class="photo-label">Selfie</div>' +
+          '<div class="photo-box" onclick="openModal(\'' + selfieUrl + '\')">' +
+          '<img src="' + selfieUrl + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" /></div></div>' +
+        '</div>' +
+        '<div class="actions">' +
+          (!user.verified ? '<button class="btn btn-green btn-small" onclick="approveUser(\'' + user.id + '\')">✓ Aprobar</button>' : '') +
+          (user.verified ? '<button class="btn btn-red btn-small" onclick="rejectUser(\'' + user.id + '\')">✕ Revocar</button>' : '') +
+        '</div></div>';
     }).join('');
-  }
-
-  function getPhotoUrl(userId, fileName) {
-    const { data } = supabase.storage.from('verification-docs').getPublicUrl(`${userId}/${fileName}`);
-    return data.publicUrl;
   }
 
   async function approveUser(userId) {
     if (!confirm('¿Aprobar este viajero?')) return;
-    await supabase.from('profiles').update({ verified: true, verification_status: 'verified' }).eq('id', userId);
+    await db.from('profiles').update({ verified: true, verification_status: 'verified' }).eq('id', userId);
     await loadUsers();
   }
 
   async function rejectUser(userId) {
-    if (!confirm('¿Revocar la verificación de este viajero?')) return;
-    await supabase.from('profiles').update({ verified: false, verification_status: 'rejected' }).eq('id', userId);
+    if (!confirm('¿Revocar la verificación?')) return;
+    await db.from('profiles').update({ verified: false, verification_status: 'rejected' }).eq('id', userId);
     await loadUsers();
   }
 
@@ -227,9 +191,15 @@
     document.getElementById('photoModal').classList.remove('open');
   }
 
-  document.getElementById('adminPassword').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') checkPassword();
+  document.getElementById('loginBtn').addEventListener('click', checkPassword);
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('photoModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
   });
+  document.getElementById('tab-pending').addEventListener('click', function() { setTab('pending'); });
+  document.getElementById('tab-verified').addEventListener('click', function() { setTab('verified'); });
+  document.getElementById('tab-all').addEventListener('click', function() { setTab('all'); });
 </script>
 </body>
 </html>
