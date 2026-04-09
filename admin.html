@@ -87,7 +87,7 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dGJkcmJ0Z2Vwb3BscXNyaHlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODYxNjQsImV4cCI6MjA5MTA2MjE2NH0.FFCKj6M3PDVPBMqXI2Wqk3lzacmDwlzLyr-_YJSTYEc';
   const ADMIN_PASSWORD = 'nexvo2026admin';
 
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentTab = 'pending';
   let allUsers = [];
