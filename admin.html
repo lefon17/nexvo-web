@@ -319,7 +319,7 @@
     };
 
     const cards = await Promise.all(requests.map(async function(req) {
-      const purchasePhotoUrl = (req.purchase_photo_url && !req.purchase_photo_url.startsWith('file://')) ? req.purchase_photo_url : null;
+      const purchasePhotoUrl = await getSignedUrlFromFull(req.purchase_photo_url);
       const receivedPhotoUrl = await getSignedUrlFromFull(req.received_photo_url);
       const deliveryPhotoUrl = await getSignedUrlFromFull(req.delivery_photo_url);
 
