@@ -18,7 +18,7 @@
     .btn-green { background: #1EEBB4; color: #07070F; }
     .btn-red { background: rgba(255,75,110,0.2); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.3); }
     .btn-small { width: auto; padding: 8px 16px; font-size: 12px; border-radius: 8px; }
-    .dashboard { padding: 24px; max-width: 1000px; margin: 0 auto; }
+    .dashboard { padding: 24px; max-width: 1100px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
     .header h1 { color: #5B6BF8; font-size: 24px; }
     .card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
@@ -28,17 +28,25 @@
     .badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
     .badge-pending { background: rgba(255,140,66,0.1); color: #FF8C42; border: 1px solid rgba(255,140,66,0.2); }
     .badge-verified { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
+    .badge-completed { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
+    .badge-delivered { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
+    .badge-received { background: rgba(167,139,250,0.1); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
+    .badge-purchased { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
     .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .photos-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
     .photo-box { aspect-ratio: 4/3; background: #181828; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); }
     .photo-box img { width: 100%; height: 100%; object-fit: cover; }
     .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #5A5A7A; font-size: 12px; }
     .photo-label { font-size: 11px; color: #5A5A7A; margin-bottom: 6px; }
     .actions { display: flex; gap: 10px; }
     .empty { text-align: center; padding: 60px; color: #5A5A7A; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
     .stat-card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; text-align: center; }
     .stat-val { font-size: 28px; font-weight: 800; color: #5B6BF8; }
     .stat-lbl { font-size: 11px; color: #5A5A7A; margin-top: 4px; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 12px; }
+    .nav-tab { padding: 10px 20px; border-radius: 10px; font-size: 13px; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); background: #10101C; color: #8A8AAA; font-weight: 500; }
+    .nav-tab.active { background: #5B6BF8; color: white; border-color: #5B6BF8; }
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
     .tab { padding: 8px 16px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); background: #10101C; color: #8A8AAA; }
     .tab.active { background: #5B6BF8; color: white; border-color: #5B6BF8; }
@@ -46,6 +54,11 @@
     .modal.open { display: flex; }
     .modal img { max-width: 90vw; max-height: 90vh; border-radius: 12px; }
     .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 24px; cursor: pointer; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+    .request-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; font-size: 12px; }
+    .request-info-item { background: #181828; border-radius: 8px; padding: 8px 12px; }
+    .request-info-label { color: #5A5A7A; margin-bottom: 2px; font-size: 10px; text-transform: uppercase; }
+    .request-info-value { color: #F0F0FF; font-weight: 600; }
+    .section-divider { font-size: 11px; color: #5A5A7A; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -64,17 +77,39 @@
     <h1>🛡️ Nexvo Admin</h1>
     <button class="btn btn-small btn-red" id="logoutBtn">Salir</button>
   </div>
+
   <div class="stats">
-    <div class="stat-card"><div class="stat-val" id="statPending">-</div><div class="stat-lbl">Pendientes</div></div>
-    <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Verificados</div></div>
+    <div class="stat-card"><div class="stat-val" id="statPending">-</div><div class="stat-lbl">Verificaciones pendientes</div></div>
+    <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Viajeros verificados</div></div>
     <div class="stat-card"><div class="stat-val" id="statTotal">-</div><div class="stat-lbl">Total usuarios</div></div>
+    <div class="stat-card"><div class="stat-val" id="statRequests">-</div><div class="stat-lbl">Total solicitudes</div></div>
   </div>
-  <div class="tabs">
-    <div class="tab active" id="tab-pending">⏳ Pendientes</div>
-    <div class="tab" id="tab-verified">✅ Verificados</div>
-    <div class="tab" id="tab-all">👥 Todos</div>
+
+  <!-- Navegación principal -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="nav-users" onclick="setNav('users')">👥 Verificaciones</div>
+    <div class="nav-tab" id="nav-requests" onclick="setNav('requests')">📦 Solicitudes</div>
   </div>
-  <div id="usersList"></div>
+
+  <!-- Sección usuarios -->
+  <div id="section-users">
+    <div class="tabs">
+      <div class="tab active" id="tab-pending">⏳ Pendientes</div>
+      <div class="tab" id="tab-verified">✅ Verificados</div>
+      <div class="tab" id="tab-all">👥 Todos</div>
+    </div>
+    <div id="usersList"></div>
+  </div>
+
+  <!-- Sección solicitudes -->
+  <div id="section-requests" style="display:none">
+    <div class="tabs">
+      <div class="tab active" id="req-tab-all">📦 Todas</div>
+      <div class="tab" id="req-tab-active">🔄 Activas</div>
+      <div class="tab" id="req-tab-completed">✅ Completadas</div>
+    </div>
+    <div id="requestsList"></div>
+  </div>
 </div>
 
 <div class="modal" id="photoModal">
@@ -90,14 +125,17 @@
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentTab = 'pending';
+  let currentReqTab = 'all';
+  let currentNav = 'users';
   let allUsers = [];
+  let allRequests = [];
 
   function checkPassword() {
     const pwd = document.getElementById('adminPassword').value;
     if (pwd === ADMIN_PASSWORD) {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      loadUsers();
+      loadAll();
     } else {
       alert('Contraseña incorrecta');
     }
@@ -109,20 +147,48 @@
     document.getElementById('adminPassword').value = '';
   }
 
+  async function loadAll() {
+    await Promise.all([loadUsers(), loadRequests()]);
+  }
+
+  function setNav(nav) {
+    currentNav = nav;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('nav-' + nav).classList.add('active');
+    document.getElementById('section-users').style.display = nav === 'users' ? 'block' : 'none';
+    document.getElementById('section-requests').style.display = nav === 'requests' ? 'block' : 'none';
+  }
+
   function setTab(tab) {
     currentTab = tab;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#section-users .tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
     renderUsers();
   }
 
-  async function getSignedUrl(userId, fileName) {
+  function setReqTab(tab) {
+    currentReqTab = tab;
+    document.querySelectorAll('#section-requests .tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('req-tab-' + tab).classList.add('active');
+    renderRequests();
+  }
+
+  async function getSignedUrl(path) {
     const { data, error } = await db.storage
       .from('verification-docs')
-      .createSignedUrl(userId + '/' + fileName, 60 * 60); // 1 hora
+      .createSignedUrl(path, 60 * 60);
     if (error || !data) return null;
     return data.signedUrl;
   }
+
+  async function getSignedUrlFromFull(fullUrl) {
+    if (!fullUrl) return null;
+    const parts = fullUrl.split('/verification-docs/');
+    if (parts.length < 2) return null;
+    return await getSignedUrl(parts[1]);
+  }
+
+  // ==================== USUARIOS ====================
 
   async function loadUsers() {
     const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false });
@@ -147,17 +213,15 @@
     list.innerHTML = '<div class="empty">Cargando fotos...</div>';
 
     const cards = await Promise.all(users.map(async function(user) {
-      const frontUrl = await getSignedUrl(user.id, 'cedula-frente.jpg');
-      const backUrl = await getSignedUrl(user.id, 'cedula-reverso.jpg');
-      const selfieUrl = await getSignedUrl(user.id, 'selfie.jpg');
+      const frontUrl = await getSignedUrl(user.id + '/cedula-frente.jpg');
+      const backUrl = await getSignedUrl(user.id + '/cedula-reverso.jpg');
+      const selfieUrl = await getSignedUrl(user.id + '/selfie.jpg');
 
       function photoBox(url, label) {
         return '<div>' +
           '<div class="photo-label">' + label + '</div>' +
           '<div class="photo-box"' + (url ? ' onclick="openModal(\'' + url + '\')"' : '') + '>' +
-          (url
-            ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" />'
-            : '<div class="no-photo">Sin foto</div>') +
+          (url ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" />' : '<div class="no-photo">Sin foto</div>') +
           '</div></div>';
       }
 
@@ -194,6 +258,85 @@
     await loadUsers();
   }
 
+  // ==================== SOLICITUDES ====================
+
+  async function loadRequests() {
+    const { data } = await db
+      .from('requests')
+      .select(`*, trips(origin_city, destination_city, travel_date), buyer:profiles!requests_buyer_id_fkey(full_name, email), traveler:profiles!requests_traveler_id_fkey(full_name, email), request_items(name, quantity, price)`)
+      .order('created_at', { ascending: false });
+    allRequests = data || [];
+    document.getElementById('statRequests').textContent = allRequests.length;
+    renderRequests();
+  }
+
+  async function renderRequests() {
+    let requests = allRequests;
+    if (currentReqTab === 'active') requests = allRequests.filter(r => ['pending','accepted','purchased','received','delivered'].includes(r.status));
+    if (currentReqTab === 'completed') requests = allRequests.filter(r => r.status === 'completed');
+
+    const list = document.getElementById('requestsList');
+    if (requests.length === 0) {
+      list.innerHTML = '<div class="empty">No hay solicitudes en esta categoría</div>';
+      return;
+    }
+
+    list.innerHTML = '<div class="empty">Cargando solicitudes...</div>';
+
+    const cards = await Promise.all(requests.map(async function(req) {
+      const statusLabels = {
+        pending: '⏳ Pendiente', accepted: '✓ Aceptada', purchased: '🛍️ Compra confirmada',
+        received: '📬 Producto recibido', delivered: '📦 Foto subida', completed: '✅ Completada',
+        rejected: '✕ Rechazada', cancelled: '✕ Cancelada'
+      };
+      const statusBadge = {
+        pending: 'badge-pending', accepted: 'badge-verified', purchased: 'badge-purchased',
+        received: 'badge-received', delivered: 'badge-delivered', completed: 'badge-completed',
+        rejected: 'badge-pending', cancelled: 'badge-pending'
+      };
+
+      const purchasePhotoUrl = req.purchase_photo_url || null;
+      const receivedPhotoUrl = await getSignedUrlFromFull(req.received_photo_url);
+      const deliveryPhotoUrl = await getSignedUrlFromFull(req.delivery_photo_url);
+
+      function photoBox(url, label) {
+        return '<div>' +
+          '<div class="photo-label">' + label + '</div>' +
+          '<div class="photo-box"' + (url ? ' onclick="openModal(\'' + url + '\')"' : '') + '>' +
+          (url ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" />' : '<div class="no-photo">Sin foto</div>') +
+          '</div></div>';
+      }
+
+      const items = (req.request_items || []).map(i => i.name + ' ×' + i.quantity).join(', ');
+
+      return '<div class="card">' +
+        '<div class="card-header">' +
+          '<div>' +
+            '<div class="user-name">' + items + '</div>' +
+            '<div class="user-email">#' + req.id.slice(0, 8).toUpperCase() + ' · ' + (req.trips?.origin_city || '') + ' → ' + (req.trips?.destination_city || '') + '</div>' +
+          '</div>' +
+          '<span class="badge ' + (statusBadge[req.status] || '') + '">' + (statusLabels[req.status] || req.status) + '</span>' +
+        '</div>' +
+        '<div class="request-info">' +
+          '<div class="request-info-item"><div class="request-info-label">Comprador</div><div class="request-info-value">' + (req.buyer?.full_name || '-') + '</div></div>' +
+          '<div class="request-info-item"><div class="request-info-label">Viajero</div><div class="request-info-value">' + (req.traveler?.full_name || '-') + '</div></div>' +
+          '<div class="request-info-item"><div class="request-info-label">Total</div><div class="request-info-value">$' + (req.total_amount?.toFixed(2) || '0.00') + '</div></div>' +
+          '<div class="request-info-item"><div class="request-info-label">Fecha vuelo</div><div class="request-info-value">' + (req.trips?.travel_date || '-') + '</div></div>' +
+        '</div>' +
+        '<div class="section-divider">Fotos de respaldo</div>' +
+        '<div class="photos-4">' +
+          photoBox(purchasePhotoUrl, '🛍️ Confirmación compra') +
+          photoBox(receivedPhotoUrl, '📬 Recepción producto') +
+          photoBox(deliveryPhotoUrl, '📸 Entrega al comprador') +
+          photoBox(null, '—') +
+        '</div>' +
+        (req.tracking_number ? '<div style="font-size:11px;color:#5A5A7A;margin-top:4px;">Tracking: <span style="color:#F0F0FF">' + req.tracking_number + '</span></div>' : '') +
+      '</div>';
+    }));
+
+    list.innerHTML = cards.join('');
+  }
+
   function openModal(url) {
     document.getElementById('modalImg').src = url;
     document.getElementById('photoModal').classList.add('open');
@@ -212,6 +355,9 @@
   document.getElementById('tab-pending').addEventListener('click', function() { setTab('pending'); });
   document.getElementById('tab-verified').addEventListener('click', function() { setTab('verified'); });
   document.getElementById('tab-all').addEventListener('click', function() { setTab('all'); });
+  document.getElementById('req-tab-all').addEventListener('click', function() { setReqTab('all'); });
+  document.getElementById('req-tab-active').addEventListener('click', function() { setReqTab('active'); });
+  document.getElementById('req-tab-completed').addEventListener('click', function() { setReqTab('completed'); });
 </script>
 </body>
 </html>
