@@ -33,7 +33,7 @@
     .badge-received { background: rgba(167,139,250,0.1); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
     .badge-purchased { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
     .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-    .photos-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .photos-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
     .photo-box { aspect-ratio: 4/3; background: #181828; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); }
     .photo-box img { width: 100%; height: 100%; object-fit: cover; }
     .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #5A5A7A; font-size: 12px; }
@@ -85,13 +85,11 @@
     <div class="stat-card"><div class="stat-val" id="statRequests">-</div><div class="stat-lbl">Total solicitudes</div></div>
   </div>
 
-  <!-- Navegación principal -->
   <div class="nav-tabs">
     <div class="nav-tab active" id="nav-users" onclick="setNav('users')">👥 Verificaciones</div>
     <div class="nav-tab" id="nav-requests" onclick="setNav('requests')">📦 Solicitudes</div>
   </div>
 
-  <!-- Sección usuarios -->
   <div id="section-users">
     <div class="tabs">
       <div class="tab active" id="tab-pending">⏳ Pendientes</div>
@@ -101,7 +99,6 @@
     <div id="usersList"></div>
   </div>
 
-  <!-- Sección solicitudes -->
   <div id="section-requests" style="display:none">
     <div class="tabs">
       <div class="tab active" id="req-tab-all">📦 Todas</div>
@@ -174,6 +171,7 @@
   }
 
   async function getSignedUrl(path) {
+    if (!path) return null;
     const { data, error } = await db.storage
       .from('verification-docs')
       .createSignedUrl(path, 60 * 60);
@@ -183,9 +181,10 @@
 
   async function getSignedUrlFromFull(fullUrl) {
     if (!fullUrl) return null;
+    if (fullUrl.startsWith('file://')) return null;
     const parts = fullUrl.split('/verification-docs/');
     if (parts.length < 2) return null;
-    return await getSignedUrl(parts[1]);
+    return await getSignedUrl(decodeURIComponent(parts[1]));
   }
 
   // ==================== USUARIOS ====================
@@ -261,11 +260,35 @@
   // ==================== SOLICITUDES ====================
 
   async function loadRequests() {
-    const { data } = await db
+    const { data, error } = await db
       .from('requests')
-      .select(`*, trips(origin_city, destination_city, travel_date), buyer:profiles!requests_buyer_id_fkey(full_name, email), traveler:profiles!requests_traveler_id_fkey(full_name, email), request_items(name, quantity, price)`)
+      .select('*, trips(origin_city, destination_city, travel_date), request_items(name, quantity, price)')
       .order('created_at', { ascending: false });
-    allRequests = data || [];
+
+    if (error) {
+      console.log('Error requests:', JSON.stringify(error));
+      return;
+    }
+
+    // Cargar perfiles de buyer y traveler por separado
+    const requests = data || [];
+    const profileIds = [...new Set([
+      ...requests.map(r => r.buyer_id),
+      ...requests.map(r => r.traveler_id)
+    ].filter(Boolean))];
+
+    let profilesMap = {};
+    if (profileIds.length > 0) {
+      const { data: profiles } = await db.from('profiles').select('id, full_name, email').in('id', profileIds);
+      (profiles || []).forEach(p => { profilesMap[p.id] = p; });
+    }
+
+    allRequests = requests.map(r => ({
+      ...r,
+      buyer: profilesMap[r.buyer_id] || null,
+      traveler: profilesMap[r.traveler_id] || null,
+    }));
+
     document.getElementById('statRequests').textContent = allRequests.length;
     renderRequests();
   }
@@ -283,19 +306,19 @@
 
     list.innerHTML = '<div class="empty">Cargando solicitudes...</div>';
 
-    const cards = await Promise.all(requests.map(async function(req) {
-      const statusLabels = {
-        pending: '⏳ Pendiente', accepted: '✓ Aceptada', purchased: '🛍️ Compra confirmada',
-        received: '📬 Producto recibido', delivered: '📦 Foto subida', completed: '✅ Completada',
-        rejected: '✕ Rechazada', cancelled: '✕ Cancelada'
-      };
-      const statusBadge = {
-        pending: 'badge-pending', accepted: 'badge-verified', purchased: 'badge-purchased',
-        received: 'badge-received', delivered: 'badge-delivered', completed: 'badge-completed',
-        rejected: 'badge-pending', cancelled: 'badge-pending'
-      };
+    const statusLabels = {
+      pending: '⏳ Pendiente', accepted: '✓ Aceptada', purchased: '🛍️ Compra confirmada',
+      received: '📬 Producto recibido', delivered: '📦 Foto subida', completed: '✅ Completada',
+      rejected: '✕ Rechazada', cancelled: '✕ Cancelada'
+    };
+    const statusBadge = {
+      pending: 'badge-pending', accepted: 'badge-verified', purchased: 'badge-purchased',
+      received: 'badge-received', delivered: 'badge-delivered', completed: 'badge-completed',
+      rejected: 'badge-pending', cancelled: 'badge-pending'
+    };
 
-      const purchasePhotoUrl = req.purchase_photo_url || null;
+    const cards = await Promise.all(requests.map(async function(req) {
+      const purchasePhotoUrl = (req.purchase_photo_url && !req.purchase_photo_url.startsWith('file://')) ? req.purchase_photo_url : null;
       const receivedPhotoUrl = await getSignedUrlFromFull(req.received_photo_url);
       const deliveryPhotoUrl = await getSignedUrlFromFull(req.delivery_photo_url);
 
@@ -312,7 +335,7 @@
       return '<div class="card">' +
         '<div class="card-header">' +
           '<div>' +
-            '<div class="user-name">' + items + '</div>' +
+            '<div class="user-name">' + (items || 'Sin ítems') + '</div>' +
             '<div class="user-email">#' + req.id.slice(0, 8).toUpperCase() + ' · ' + (req.trips?.origin_city || '') + ' → ' + (req.trips?.destination_city || '') + '</div>' +
           '</div>' +
           '<span class="badge ' + (statusBadge[req.status] || '') + '">' + (statusLabels[req.status] || req.status) + '</span>' +
@@ -324,11 +347,10 @@
           '<div class="request-info-item"><div class="request-info-label">Fecha vuelo</div><div class="request-info-value">' + (req.trips?.travel_date || '-') + '</div></div>' +
         '</div>' +
         '<div class="section-divider">Fotos de respaldo</div>' +
-        '<div class="photos-4">' +
+        '<div class="photos-3">' +
           photoBox(purchasePhotoUrl, '🛍️ Confirmación compra') +
           photoBox(receivedPhotoUrl, '📬 Recepción producto') +
           photoBox(deliveryPhotoUrl, '📸 Entrega al comprador') +
-          photoBox(null, '—') +
         '</div>' +
         (req.tracking_number ? '<div style="font-size:11px;color:#5A5A7A;margin-top:4px;">Tracking: <span style="color:#F0F0FF">' + req.tracking_number + '</span></div>' : '') +
       '</div>';
