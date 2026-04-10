@@ -116,8 +116,8 @@
 
 <script>
   const SUPABASE_URL = 'https://httbdrbtgepoplqsrhyk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dGJkcmJ0Z2Vwb3BscXNyaHlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODYxNjQsImV4cCI6MjA5MTA2MjE2NH0.FFCKj6M3PDVPBMqXI2Wqk3lzacmDwlzLyr-_YJSTYEc';
-  const ADMIN_PASSWORD = 'nexvo2026admin';
+  const SUPABASE_KEY = 'sb_secret_k65yfGByvKBOXGuI3WHh9w_RII15gj8';
+  const ADMIN_PASSWORD = 'linkyin17@Lin';
 
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -269,6 +269,7 @@
       console.log('Error requests:', JSON.stringify(error));
       return;
     }
+    console.log('Requests data:', JSON.stringify(data));
 
     // Cargar perfiles de buyer y traveler por separado
     const requests = data || [];
