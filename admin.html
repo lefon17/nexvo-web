@@ -43,7 +43,7 @@
     .photo-label { font-size: 11px; color: #5A5A7A; margin-bottom: 6px; }
     .actions { display: flex; gap: 10px; }
     .empty { text-align: center; padding: 60px; color: #5A5A7A; }
-    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
     .stat-card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; text-align: center; }
     .stat-val { font-size: 28px; font-weight: 800; color: #5B6BF8; }
     .stat-lbl { font-size: 11px; color: #5A5A7A; margin-top: 4px; }
@@ -85,12 +85,11 @@
   </div>
 
   <div class="stats">
-    <div class="stat-card"><div class="stat-val" id="statPending">-</div><div class="stat-lbl">Verificaciones pendientes</div></div>
-    <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Viajeros verificados</div></div>
-    <div class="stat-card"><div class="stat-val" id="statTotal">-</div><div class="stat-lbl">Total usuarios</div></div>
-    <div class="stat-card"><div class="stat-val" id="statRequests">-</div><div class="stat-lbl">Total solicitudes</div></div>
-    <div class="stat-card"><div class="stat-val" id="statTrips">-</div><div class="stat-lbl">Total viajes</div></div>
-  </div>
+  <div class="stat-card"><div class="stat-val" id="statPending">-</div><div class="stat-lbl">Verificaciones pendientes</div></div>
+  <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Usuarios verificados</div></div>
+  <div class="stat-card"><div class="stat-val" id="statRequests">-</div><div class="stat-lbl">Total respaldos</div></div>
+  <div class="stat-card"><div class="stat-val" id="statTrips">-</div><div class="stat-lbl">Total viajes</div></div>
+</div>
 
   <div class="nav-tabs">
     <div class="nav-tab active" id="nav-users" onclick="setNav('users')">👥 Verificaciones</div>
