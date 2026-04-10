@@ -17,6 +17,7 @@
     .btn:hover { background: #4a5ae0; }
     .btn-green { background: #1EEBB4; color: #07070F; }
     .btn-red { background: rgba(255,75,110,0.2); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.3); }
+    .btn-orange { background: rgba(255,140,66,0.2); color: #FF8C42; border: 1px solid rgba(255,140,66,0.3); }
     .btn-small { width: auto; padding: 8px 16px; font-size: 12px; border-radius: 8px; }
     .dashboard { padding: 24px; max-width: 1100px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
@@ -32,6 +33,8 @@
     .badge-delivered { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
     .badge-received { background: rgba(167,139,250,0.1); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
     .badge-purchased { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
+    .badge-inactive { background: rgba(255,75,110,0.1); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.2); }
+    .badge-active { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
     .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
     .photos-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
     .photo-box { aspect-ratio: 4/3; background: #181828; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); }
@@ -40,7 +43,7 @@
     .photo-label { font-size: 11px; color: #5A5A7A; margin-bottom: 6px; }
     .actions { display: flex; gap: 10px; }
     .empty { text-align: center; padding: 60px; color: #5A5A7A; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
     .stat-card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; text-align: center; }
     .stat-val { font-size: 28px; font-weight: 800; color: #5B6BF8; }
     .stat-lbl { font-size: 11px; color: #5A5A7A; margin-top: 4px; }
@@ -59,6 +62,9 @@
     .request-info-label { color: #5A5A7A; margin-bottom: 2px; font-size: 10px; text-transform: uppercase; }
     .request-info-value { color: #F0F0FF; font-weight: 600; }
     .section-divider { font-size: 11px; color: #5A5A7A; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; margin-top: 4px; }
+    .trip-items { background: #181828; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+    .trip-item-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+    .trip-item-row:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -83,11 +89,13 @@
     <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Viajeros verificados</div></div>
     <div class="stat-card"><div class="stat-val" id="statTotal">-</div><div class="stat-lbl">Total usuarios</div></div>
     <div class="stat-card"><div class="stat-val" id="statRequests">-</div><div class="stat-lbl">Total solicitudes</div></div>
+    <div class="stat-card"><div class="stat-val" id="statTrips">-</div><div class="stat-lbl">Total viajes</div></div>
   </div>
 
   <div class="nav-tabs">
     <div class="nav-tab active" id="nav-users" onclick="setNav('users')">👥 Verificaciones</div>
-    <div class="nav-tab" id="nav-requests" onclick="setNav('requests')">📦 Solicitudes</div>
+    <div class="nav-tab" id="nav-trips" onclick="setNav('trips')">✈️ Viajes</div>
+    <div class="nav-tab" id="nav-requests" onclick="setNav('requests')">📁 Respaldos</div>
   </div>
 
   <div id="section-users">
@@ -97,6 +105,15 @@
       <div class="tab" id="tab-all">👥 Todos</div>
     </div>
     <div id="usersList"></div>
+  </div>
+
+  <div id="section-trips" style="display:none">
+    <div class="tabs">
+      <div class="tab active" id="trip-tab-active">✅ Activos</div>
+      <div class="tab" id="trip-tab-inactive">🚫 Inactivos</div>
+      <div class="tab" id="trip-tab-all">✈️ Todos</div>
+    </div>
+    <div id="tripsList"></div>
   </div>
 
   <div id="section-requests" style="display:none">
@@ -123,9 +140,11 @@
 
   let currentTab = 'pending';
   let currentReqTab = 'all';
+  let currentTripTab = 'active';
   let currentNav = 'users';
   let allUsers = [];
   let allRequests = [];
+  let allTrips = [];
 
   function checkPassword() {
     const pwd = document.getElementById('adminPassword').value;
@@ -145,7 +164,7 @@
   }
 
   async function loadAll() {
-    await Promise.all([loadUsers(), loadRequests()]);
+    await Promise.all([loadUsers(), loadRequests(), loadTrips()]);
   }
 
   function setNav(nav) {
@@ -153,6 +172,7 @@
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('nav-' + nav).classList.add('active');
     document.getElementById('section-users').style.display = nav === 'users' ? 'block' : 'none';
+    document.getElementById('section-trips').style.display = nav === 'trips' ? 'block' : 'none';
     document.getElementById('section-requests').style.display = nav === 'requests' ? 'block' : 'none';
   }
 
@@ -168,6 +188,13 @@
     document.querySelectorAll('#section-requests .tab').forEach(t => t.classList.remove('active'));
     document.getElementById('req-tab-' + tab).classList.add('active');
     renderRequests();
+  }
+
+  function setTripTab(tab) {
+    currentTripTab = tab;
+    document.querySelectorAll('#section-trips .tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('trip-tab-' + tab).classList.add('active');
+    renderTrips();
   }
 
   async function getSignedUrl(path) {
@@ -257,7 +284,69 @@
     await loadUsers();
   }
 
-  // ==================== SOLICITUDES ====================
+  // ==================== VIAJES ====================
+
+  async function loadTrips() {
+    const { data } = await db
+      .from('trips')
+      .select('*, profiles(full_name, email), trip_items(name, price, billing_type, max_quantity)')
+      .order('created_at', { ascending: false });
+    allTrips = data || [];
+    document.getElementById('statTrips').textContent = allTrips.length;
+    renderTrips();
+  }
+
+  function renderTrips() {
+    let trips = allTrips;
+    if (currentTripTab === 'active') trips = allTrips.filter(t => t.active);
+    if (currentTripTab === 'inactive') trips = allTrips.filter(t => !t.active);
+
+    const list = document.getElementById('tripsList');
+    if (trips.length === 0) {
+      list.innerHTML = '<div class="empty">No hay viajes en esta categoría</div>';
+      return;
+    }
+
+    list.innerHTML = trips.map(function(trip) {
+      const items = (trip.trip_items || []).map(i =>
+        '<div class="trip-item-row">' +
+          '<span style="color:#F0F0FF">' + i.name + '</span>' +
+          '<span style="color:#8A8AAA">$' + i.price + ' / ' + (i.billing_type === 'lb' ? 'lb' : 'ítem') + ' · máx ' + i.max_quantity + '</span>' +
+        '</div>'
+      ).join('');
+
+      return '<div class="card">' +
+        '<div class="card-header">' +
+          '<div>' +
+            '<div class="user-name">' + (trip.origin_city || '') + ' → 🇪🇨 ' + (trip.destination_city || '') + '</div>' +
+            '<div class="user-email">✈️ ' + (trip.travel_date || '') + ' · ' + (trip.profiles?.full_name || '') + '</div>' +
+          '</div>' +
+          '<span class="badge ' + (trip.active ? 'badge-active' : 'badge-inactive') + '">' +
+          (trip.active ? '✅ Activo' : '🚫 Inactivo') + '</span>' +
+        '</div>' +
+        '<div class="trip-items">' + (items || '<div style="color:#5A5A7A;font-size:12px">Sin ítems</div>') + '</div>' +
+        '<div class="actions">' +
+          (trip.active
+            ? '<button class="btn btn-red btn-small" onclick="deactivateTrip(\'' + trip.id + '\')">🚫 Desactivar viaje</button>'
+            : '<button class="btn btn-green btn-small" onclick="activateTrip(\'' + trip.id + '\')">✅ Reactivar viaje</button>') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function deactivateTrip(tripId) {
+    if (!confirm('¿Desactivar este viaje? Ya no aparecerá en el inicio para nuevos compradores.')) return;
+    await db.from('trips').update({ active: false }).eq('id', tripId);
+    await loadTrips();
+  }
+
+  async function activateTrip(tripId) {
+    if (!confirm('¿Reactivar este viaje?')) return;
+    await db.from('trips').update({ active: true }).eq('id', tripId);
+    await loadTrips();
+  }
+
+  // ==================== RESPALDOS ====================
 
   async function loadRequests() {
     const { data, error } = await db
@@ -265,13 +354,8 @@
       .select('*, trips(origin_city, destination_city, travel_date), request_items(name, quantity, price)')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.log('Error requests:', JSON.stringify(error));
-      return;
-    }
-    console.log('Requests data:', JSON.stringify(data));
+    if (error) { console.log('Error requests:', JSON.stringify(error)); return; }
 
-    // Cargar perfiles de buyer y traveler por separado
     const requests = data || [];
     const profileIds = [...new Set([
       ...requests.map(r => r.buyer_id),
@@ -305,7 +389,7 @@
       return;
     }
 
-    list.innerHTML = '<div class="empty">Cargando solicitudes...</div>';
+    list.innerHTML = '<div class="empty">Cargando respaldos...</div>';
 
     const statusLabels = {
       pending: '⏳ Pendiente', accepted: '✓ Aceptada', purchased: '🛍️ Compra confirmada',
@@ -381,6 +465,9 @@
   document.getElementById('req-tab-all').addEventListener('click', function() { setReqTab('all'); });
   document.getElementById('req-tab-active').addEventListener('click', function() { setReqTab('active'); });
   document.getElementById('req-tab-completed').addEventListener('click', function() { setReqTab('completed'); });
+  document.getElementById('trip-tab-active').addEventListener('click', function() { setTripTab('active'); });
+  document.getElementById('trip-tab-inactive').addEventListener('click', function() { setTripTab('inactive'); });
+  document.getElementById('trip-tab-all').addEventListener('click', function() { setTripTab('all'); });
 </script>
 </body>
 </html>
