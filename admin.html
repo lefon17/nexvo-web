@@ -7,466 +7,808 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #07070F; color: #F0F0FF; min-height: 100vh; }
-    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .login-box { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; }
-    .login-box h1 { color: #5B6BF8; font-size: 28px; margin-bottom: 8px; }
-    .login-box p { color: #5A5A7A; font-size: 13px; margin-bottom: 24px; }
-    input { width: 100%; background: #181828; border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 12px; color: #F0F0FF; font-size: 14px; margin-bottom: 12px; }
-    .btn { width: 100%; background: #5B6BF8; color: white; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
-    .btn:hover { background: #4a5ae0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #07070F; color: #F0F0FF; min-height: 100vh; }
+
+    /* LOGIN */
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, rgba(91,107,248,0.15) 0%, transparent 70%); }
+    .login-box { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 24px; padding: 48px 40px; width: 100%; max-width: 400px; }
+    .login-logo { font-size: 36px; font-weight: 800; color: #5B6BF8; letter-spacing: -1px; margin-bottom: 4px; }
+    .login-sub { color: #5A5A7A; font-size: 13px; margin-bottom: 32px; }
+    input { width: 100%; background: #181828; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 13px 16px; color: #F0F0FF; font-size: 14px; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: rgba(91,107,248,0.5); }
+
+    /* BUTTONS */
+    .btn { background: #5B6BF8; color: white; border: none; border-radius: 12px; padding: 13px 20px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn:hover { background: #4a5ae0; transform: translateY(-1px); }
+    .btn-full { width: 100%; }
     .btn-green { background: #1EEBB4; color: #07070F; }
-    .btn-red { background: rgba(255,75,110,0.2); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.3); }
-    .btn-orange { background: rgba(255,140,66,0.2); color: #FF8C42; border: 1px solid rgba(255,140,66,0.3); }
-    .btn-small { width: auto; padding: 8px 16px; font-size: 12px; border-radius: 8px; }
-    .dashboard { padding: 24px; max-width: 1100px; margin: 0 auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-    .header h1 { color: #5B6BF8; font-size: 24px; }
-    .card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .user-name { font-size: 16px; font-weight: 700; color: #F0F0FF; }
-    .user-email { font-size: 12px; color: #5A5A7A; margin-top: 4px; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+    .btn-green:hover { background: #17d4a0; }
+    .btn-red { background: rgba(255,75,110,0.15); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.3); }
+    .btn-red:hover { background: rgba(255,75,110,0.25); }
+    .btn-orange { background: rgba(255,140,66,0.15); color: #FF8C42; border: 1px solid rgba(255,140,66,0.3); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+
+    /* LAYOUT */
+    .dashboard { display: none; min-height: 100vh; }
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: #0D0D1A; border-right: 1px solid rgba(255,255,255,0.06); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-logo { font-size: 22px; font-weight: 800; color: #5B6BF8; letter-spacing: -1px; padding: 8px 12px; margin-bottom: 16px; }
+    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 13px; color: #5A5A7A; font-weight: 500; transition: all 0.15s; }
+    .sidebar-item:hover { background: rgba(255,255,255,0.04); color: #F0F0FF; }
+    .sidebar-item.active { background: rgba(91,107,248,0.15); color: #5B6BF8; }
+    .sidebar-item .icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-badge { margin-left: auto; background: #FF4B6E; color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
+    .sidebar-footer { margin-top: auto; }
+    .main { margin-left: 220px; padding: 32px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* HEADER */
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+    .page-title { font-size: 22px; font-weight: 800; color: #F0F0FF; }
+    .page-sub { font-size: 13px; color: #5A5A7A; margin-top: 2px; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 28px; }
+    .stat-card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 18px; }
+    .stat-val { font-size: 30px; font-weight: 800; color: #5B6BF8; line-height: 1; }
+    .stat-val.green { color: #1EEBB4; }
+    .stat-val.orange { color: #FF8C42; }
+    .stat-val.purple { color: #A78BFA; }
+    .stat-val.red { color: #FF4B6E; }
+    .stat-lbl { font-size: 11px; color: #5A5A7A; margin-top: 6px; }
+
+    /* TABS */
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 20px; }
+    .tab-btn { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); background: #10101C; color: #5A5A7A; transition: all 0.15s; }
+    .tab-btn:hover { color: #F0F0FF; }
+    .tab-btn.active { background: #5B6BF8; color: white; border-color: #5B6BF8; }
+
+    /* CARDS */
+    .card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px; margin-bottom: 12px; transition: border-color 0.2s; }
+    .card:hover { border-color: rgba(255,255,255,0.12); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .card-title { font-size: 15px; font-weight: 700; color: #F0F0FF; }
+    .card-sub { font-size: 12px; color: #5A5A7A; margin-top: 3px; }
+    .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .info-cell { background: #181828; border-radius: 8px; padding: 10px 12px; }
+    .info-lbl { font-size: 10px; color: #5A5A7A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-val { font-size: 13px; font-weight: 600; color: #F0F0FF; }
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+    /* BADGES */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
     .badge-pending { background: rgba(255,140,66,0.1); color: #FF8C42; border: 1px solid rgba(255,140,66,0.2); }
     .badge-verified { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
-    .badge-completed { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
-    .badge-delivered { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
-    .badge-received { background: rgba(167,139,250,0.1); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
-    .badge-purchased { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
-    .badge-inactive { background: rgba(255,75,110,0.1); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.2); }
     .badge-active { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
-    .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-    .photos-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-    .photo-box { aspect-ratio: 4/3; background: #181828; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); }
+    .badge-inactive { background: rgba(255,75,110,0.1); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.2); }
+    .badge-completed { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
+    .badge-purchased { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
+    .badge-received { background: rgba(167,139,250,0.1); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
+    .badge-delivered { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
+    .badge-open { background: rgba(91,107,248,0.1); color: #8B9FFF; border: 1px solid rgba(91,107,248,0.2); }
+    .badge-matched { background: rgba(30,235,180,0.1); color: #1EEBB4; border: 1px solid rgba(30,235,180,0.2); }
+    .badge-cancelled { background: rgba(255,75,110,0.1); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.2); }
+    .badge-rejected { background: rgba(255,75,110,0.1); color: #FF4B6E; border: 1px solid rgba(255,75,110,0.2); }
+
+    /* PHOTOS */
+    .photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .photo-wrap { display: block; }
+    .photo-lbl { font-size: 10px; color: #5A5A7A; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .photo-box { aspect-ratio: 4/3; background: #181828; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); transition: border-color 0.2s; }
+    .photo-box:hover { border-color: rgba(91,107,248,0.4); }
     .photo-box img { width: 100%; height: 100%; object-fit: cover; }
-    .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #5A5A7A; font-size: 12px; }
-    .photo-label { font-size: 11px; color: #5A5A7A; margin-bottom: 6px; }
-    .actions { display: flex; gap: 10px; }
-    .empty { text-align: center; padding: 60px; color: #5A5A7A; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: #10101C; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; text-align: center; }
-    .stat-val { font-size: 28px; font-weight: 800; color: #5B6BF8; }
-    .stat-lbl { font-size: 11px; color: #5A5A7A; margin-top: 4px; }
-    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 12px; }
-    .nav-tab { padding: 10px 20px; border-radius: 10px; font-size: 13px; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); background: #10101C; color: #8A8AAA; font-weight: 500; }
-    .nav-tab.active { background: #5B6BF8; color: white; border-color: #5B6BF8; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-    .tab { padding: 8px 16px; border-radius: 10px; font-size: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.07); background: #10101C; color: #8A8AAA; }
-    .tab.active { background: #5B6BF8; color: white; border-color: #5B6BF8; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-    .modal.open { display: flex; }
-    .modal img { max-width: 90vw; max-height: 90vh; border-radius: 12px; }
-    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 24px; cursor: pointer; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-    .request-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; font-size: 12px; }
-    .request-info-item { background: #181828; border-radius: 8px; padding: 8px 12px; }
-    .request-info-label { color: #5A5A7A; margin-bottom: 2px; font-size: 10px; text-transform: uppercase; }
-    .request-info-value { color: #F0F0FF; font-weight: 600; }
-    .section-divider { font-size: 11px; color: #5A5A7A; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; margin-top: 4px; }
+    .no-photo { display: flex; align-items: center; justify-content: center; height: 100%; color: #5A5A7A; font-size: 11px; }
+
+    /* OFFERS LIST */
+    .offers-list { background: #181828; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .offer-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .offer-row:last-child { border-bottom: none; }
+    .offer-name { font-size: 13px; font-weight: 600; color: #F0F0FF; }
+    .offer-meta { font-size: 11px; color: #5A5A7A; margin-top: 2px; }
+    .offer-fee { font-size: 16px; font-weight: 800; color: #5B6BF8; }
+
+    /* USERS LIST */
+    .user-list-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .user-list-item:last-child { border-bottom: none; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 20px; background: #5B6BF8; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; }
+    .user-info { flex: 1; }
+    .user-name-text { font-size: 14px; font-weight: 600; color: #F0F0FF; }
+    .user-email-text { font-size: 12px; color: #5A5A7A; margin-top: 2px; }
+    .user-stats { font-size: 11px; color: #5A5A7A; margin-top: 2px; }
+
+    /* TRIP ITEMS */
     .trip-items { background: #181828; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
-    .trip-item-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+    .trip-item-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
     .trip-item-row:last-child { border-bottom: none; }
+
+    /* MODAL */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal.open { display: flex; }
+    .modal img { max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 24px 80px rgba(0,0,0,0.8); }
+    .modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 18px; cursor: pointer; background: rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.15); }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 60px 20px; color: #5A5A7A; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; }
+
+    /* DIVIDER */
+    .section-label { font-size: 10px; color: #5A5A7A; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; margin-top: 4px; }
+
+    /* REFRESH BTN */
+    .refresh-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #8A8AAA; border-radius: 10px; padding: 8px 14px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .refresh-btn:hover { background: rgba(255,255,255,0.08); color: #F0F0FF; }
   </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
-    <h1>Nexvo Admin</h1>
-    <p>Panel de administración</p>
-    <input type="password" id="adminPassword" placeholder="Contraseña de admin" onkeypress="if(event.key==='Enter') checkPassword()" />
-    <button class="btn" id="loginBtn">Entrar</button>
+    <div class="login-logo">nexvo</div>
+    <div class="login-sub">Panel de administración</div>
+    <input type="password" id="adminPassword" placeholder="Contraseña de admin"
+      onkeypress="if(event.key==='Enter') checkPassword()" />
+    <button class="btn btn-full" onclick="checkPassword()">Entrar →</button>
   </div>
 </div>
 
-<div class="dashboard" id="dashboard" style="display:none">
-  <div class="header">
-    <h1>🛡️ Nexvo Admin</h1>
-    <button class="btn btn-small btn-red" id="logoutBtn">Salir</button>
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">nexvo</div>
+    <div class="sidebar-item active" id="nav-overview" onclick="setPage('overview')">
+      <span class="icon">📊</span> Resumen
+    </div>
+    <div class="sidebar-item" id="nav-verifications" onclick="setPage('verifications')">
+      <span class="icon">🪪</span> Verificaciones
+      <span class="sidebar-badge" id="badge-verifications">0</span>
+    </div>
+    <div class="sidebar-item" id="nav-trips" onclick="setPage('trips')">
+      <span class="icon">✈️</span> Viajes
+    </div>
+    <div class="sidebar-item" id="nav-requests" onclick="setPage('requests')">
+      <span class="icon">📦</span> Solicitudes
+    </div>
+    <div class="sidebar-item" id="nav-open-requests" onclick="setPage('open-requests')">
+      <span class="icon">📢</span> Pedidos Abiertos
+    </div>
+    <div class="sidebar-item" id="nav-users" onclick="setPage('users')">
+      <span class="icon">👥</span> Usuarios
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-item" onclick="logout()">
+        <span class="icon">🚪</span> Salir
+      </div>
+    </div>
   </div>
 
-  <div class="stats">
-  <div class="stat-card"><div class="stat-val" id="statPending">-</div><div class="stat-lbl">Verificaciones pendientes</div></div>
-  <div class="stat-card"><div class="stat-val" id="statVerified">-</div><div class="stat-lbl">Usuarios verificados</div></div>
-  <div class="stat-card"><div class="stat-val" id="statRequests">-</div><div class="stat-lbl">Total respaldos</div></div>
-  <div class="stat-card"><div class="stat-val" id="statTrips">-</div><div class="stat-lbl">Total viajes</div></div>
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Resumen</div>
+          <div class="page-sub">Vista general de Nexvo</div>
+        </div>
+        <button class="refresh-btn" onclick="loadAll()">↻ Actualizar</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val orange" id="s-pending-verif">-</div>
+          <div class="stat-lbl">Verificaciones pendientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val green" id="s-verified">-</div>
+          <div class="stat-lbl">Usuarios verificados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="s-trips">-</div>
+          <div class="stat-lbl">Viajes publicados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val purple" id="s-requests">-</div>
+          <div class="stat-lbl">Solicitudes totales</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val green" id="s-open-requests">-</div>
+          <div class="stat-lbl">Pedidos abiertos</div>
+        </div>
+      </div>
+
+      <!-- Últimas verificaciones pendientes -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-title">🪪 Verificaciones pendientes</div>
+            <div class="card-sub">Usuarios esperando aprobación</div>
+          </div>
+          <button class="btn btn-sm" onclick="setPage('verifications')">Ver todas →</button>
+        </div>
+        <div id="overview-pending-list"></div>
+      </div>
+
+      <!-- Últimas solicitudes activas -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-title">📦 Solicitudes activas recientes</div>
+            <div class="card-sub">Últimas 5 en curso</div>
+          </div>
+          <button class="btn btn-sm" onclick="setPage('requests')">Ver todas →</button>
+        </div>
+        <div id="overview-requests-list"></div>
+      </div>
+    </div>
+
+    <!-- VERIFICACIONES -->
+    <div class="page" id="page-verifications">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Verificaciones</div>
+          <div class="page-sub">Revisión de identidad de usuarios</div>
+        </div>
+        <button class="refresh-btn" onclick="loadUsers()">↻ Actualizar</button>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-btn active" id="vtab-pending" onclick="setVerifTab('pending')">⏳ Pendientes</div>
+        <div class="tab-btn" id="vtab-verified" onclick="setVerifTab('verified')">✅ Verificados</div>
+        <div class="tab-btn" id="vtab-rejected" onclick="setVerifTab('rejected')">❌ Rechazados</div>
+        <div class="tab-btn" id="vtab-all" onclick="setVerifTab('all')">👥 Todos</div>
+      </div>
+      <div id="verif-list"></div>
+    </div>
+
+    <!-- VIAJES -->
+    <div class="page" id="page-trips">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Viajes</div>
+          <div class="page-sub">Gestión de viajes publicados</div>
+        </div>
+        <button class="refresh-btn" onclick="loadTrips()">↻ Actualizar</button>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-btn active" id="ttab-active" onclick="setTripTab('active')">✅ Activos</div>
+        <div class="tab-btn" id="ttab-inactive" onclick="setTripTab('inactive')">🚫 Inactivos</div>
+        <div class="tab-btn" id="ttab-all" onclick="setTripTab('all')">✈️ Todos</div>
+      </div>
+      <div id="trips-list"></div>
+    </div>
+
+    <!-- SOLICITUDES -->
+    <div class="page" id="page-requests">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Solicitudes</div>
+          <div class="page-sub">Respaldos fotográficos y estados</div>
+        </div>
+        <button class="refresh-btn" onclick="loadRequests()">↻ Actualizar</button>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-btn active" id="rtab-all" onclick="setReqTab('all')">📦 Todas</div>
+        <div class="tab-btn" id="rtab-active" onclick="setReqTab('active')">🔄 Activas</div>
+        <div class="tab-btn" id="rtab-completed" onclick="setReqTab('completed')">✅ Completadas</div>
+        <div class="tab-btn" id="rtab-problem" onclick="setReqTab('problem')">⚠️ Con problema</div>
+      </div>
+      <div id="requests-list"></div>
+    </div>
+
+    <!-- PEDIDOS ABIERTOS -->
+    <div class="page" id="page-open-requests">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Pedidos Abiertos</div>
+          <div class="page-sub">Pedidos publicados por compradores</div>
+        </div>
+        <button class="refresh-btn" onclick="loadOpenRequests()">↻ Actualizar</button>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-btn active" id="otab-open" onclick="setOpenTab('open')">📢 Abiertos</div>
+        <div class="tab-btn" id="otab-matched" onclick="setOpenTab('matched')">✅ Con match</div>
+        <div class="tab-btn" id="otab-cancelled" onclick="setOpenTab('cancelled')">❌ Cancelados</div>
+        <div class="tab-btn" id="otab-all" onclick="setOpenTab('all')">📋 Todos</div>
+      </div>
+      <div id="open-requests-list"></div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Usuarios</div>
+          <div class="page-sub">Todos los usuarios registrados</div>
+        </div>
+        <button class="refresh-btn" onclick="loadUsers()">↻ Actualizar</button>
+      </div>
+      <div class="card">
+        <div id="users-full-list"></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-  <div class="nav-tabs">
-    <div class="nav-tab active" id="nav-users" onclick="setNav('users')">👥 Verificaciones</div>
-    <div class="nav-tab" id="nav-trips" onclick="setNav('trips')">✈️ Viajes</div>
-    <div class="nav-tab" id="nav-requests" onclick="setNav('requests')">📁 Respaldos</div>
-  </div>
-
-  <div id="section-users">
-    <div class="tabs">
-      <div class="tab active" id="tab-pending">⏳ Pendientes</div>
-      <div class="tab" id="tab-verified">✅ Verificados</div>
-      <div class="tab" id="tab-all">👥 Todos</div>
-    </div>
-    <div id="usersList"></div>
-  </div>
-
-  <div id="section-trips" style="display:none">
-    <div class="tabs">
-      <div class="tab active" id="trip-tab-active">✅ Activos</div>
-      <div class="tab" id="trip-tab-inactive">🚫 Inactivos</div>
-      <div class="tab" id="trip-tab-all">✈️ Todos</div>
-    </div>
-    <div id="tripsList"></div>
-  </div>
-
-  <div id="section-requests" style="display:none">
-    <div class="tabs">
-      <div class="tab active" id="req-tab-all">📦 Todas</div>
-      <div class="tab" id="req-tab-active">🔄 Activas</div>
-      <div class="tab" id="req-tab-completed">✅ Completadas</div>
-    </div>
-    <div id="requestsList"></div>
-  </div>
-</div>
-
+<!-- MODAL FOTO -->
 <div class="modal" id="photoModal">
-  <div class="modal-close" id="modalClose">✕</div>
+  <div class="modal-close" onclick="closeModal()">✕</div>
   <img id="modalImg" src="" />
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://httbdrbtgepoplqsrhyk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dGJkcmJ0Z2Vwb3BscXNyaHlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTQ4NjE2NCwiZXhwIjoyMDkxMDYyMTY0fQ.nRbpdxkz0KIbH0eGaOmWbRh7lvJf65TFj2c0BMqCcvg';
-  const ADMIN_PASSWORD = 'linkyin17@Lin';
+const SUPABASE_URL = 'https://httbdrbtgepoplqsrhyk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0dGJkcmJ0Z2Vwb3BscXNyaHlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTQ4NjE2NCwiZXhwIjoyMDkxMDYyMTY0fQ.nRbpdxkz0KIbH0eGaOmWbRh7lvJf65TFj2c0BMqCcvg';
+const ADMIN_PASSWORD = 'linkyin17@Lin';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let allUsers = [], allTrips = [], allRequests = [], allOpenRequests = [];
+let verifTab = 'pending', tripTab = 'active', reqTab = 'all', openTab = 'open';
 
-  let currentTab = 'pending';
-  let currentReqTab = 'all';
-  let currentTripTab = 'active';
-  let currentNav = 'users';
-  let allUsers = [];
-  let allRequests = [];
-  let allTrips = [];
+// ==================== AUTH ====================
 
-  function checkPassword() {
-    const pwd = document.getElementById('adminPassword').value;
-    if (pwd === ADMIN_PASSWORD) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      loadAll();
-    } else {
-      alert('Contraseña incorrecta');
-    }
+function checkPassword() {
+  const pwd = document.getElementById('adminPassword').value;
+  if (pwd === ADMIN_PASSWORD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('adminPassword').style.borderColor = 'rgba(255,75,110,0.5)';
+    setTimeout(() => document.getElementById('adminPassword').style.borderColor = '', 1000);
+  }
+}
+
+function logout() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('adminPassword').value = '';
+}
+
+// ==================== NAVIGATION ====================
+
+function setPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+}
+
+function setVerifTab(tab) {
+  verifTab = tab;
+  document.querySelectorAll('[id^="vtab-"]').forEach(t => t.classList.remove('active'));
+  document.getElementById('vtab-' + tab).classList.add('active');
+  renderVerifications();
+}
+
+function setTripTab(tab) {
+  tripTab = tab;
+  document.querySelectorAll('[id^="ttab-"]').forEach(t => t.classList.remove('active'));
+  document.getElementById('ttab-' + tab).classList.add('active');
+  renderTrips();
+}
+
+function setReqTab(tab) {
+  reqTab = tab;
+  document.querySelectorAll('[id^="rtab-"]').forEach(t => t.classList.remove('active'));
+  document.getElementById('rtab-' + tab).classList.add('active');
+  renderRequests();
+}
+
+function setOpenTab(tab) {
+  openTab = tab;
+  document.querySelectorAll('[id^="otab-"]').forEach(t => t.classList.remove('active'));
+  document.getElementById('otab-' + tab).classList.add('active');
+  renderOpenRequests();
+}
+
+// ==================== LOAD ALL ====================
+
+async function loadAll() {
+  await Promise.all([loadUsers(), loadTrips(), loadRequests(), loadOpenRequests()]);
+  renderOverview();
+}
+
+function renderOverview() {
+  const pendingVerif = allUsers.filter(u => u.verification_status === 'pending');
+  const verified = allUsers.filter(u => u.verified);
+  const activeReqs = allRequests.filter(r => ['pending','accepted','purchased','received','delivered'].includes(r.status));
+  const openReqs = allOpenRequests.filter(r => r.status === 'open');
+
+  document.getElementById('s-pending-verif').textContent = pendingVerif.length;
+  document.getElementById('s-verified').textContent = verified.length;
+  document.getElementById('s-trips').textContent = allTrips.length;
+  document.getElementById('s-requests').textContent = allRequests.length;
+  document.getElementById('s-open-requests').textContent = openReqs.length;
+  document.getElementById('badge-verifications').textContent = pendingVerif.length;
+
+  // Overview pending verifications
+  const ovPending = document.getElementById('overview-pending-list');
+  if (pendingVerif.length === 0) {
+    ovPending.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sin verificaciones pendientes</div></div>';
+  } else {
+    ovPending.innerHTML = pendingVerif.slice(0, 5).map(u => `
+      <div class="user-list-item">
+        <div class="user-avatar">${(u.full_name || '?').charAt(0)}</div>
+        <div class="user-info">
+          <div class="user-name-text">${u.full_name || 'Sin nombre'}</div>
+          <div class="user-email-text">${u.email || ''}</div>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="approveUser('${u.id}')">✓ Aprobar</button>
+      </div>
+    `).join('');
   }
 
-  function logout() {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('adminPassword').value = '';
+  // Overview active requests
+  const ovReqs = document.getElementById('overview-requests-list');
+  if (activeReqs.length === 0) {
+    ovReqs.innerHTML = '<div class="empty"><div class="empty-text">Sin solicitudes activas</div></div>';
+  } else {
+    const statusLabels = { pending:'⏳ Pendiente', accepted:'✓ Aceptada', purchased:'🛍️ Comprada', received:'📬 Recibida', delivered:'📦 Entregada' };
+    ovReqs.innerHTML = activeReqs.slice(0, 5).map(r => `
+      <div class="user-list-item">
+        <div style="flex:1">
+          <div class="user-name-text">${(r.request_items||[]).map(i=>i.name).join(', ') || 'Sin ítems'}</div>
+          <div class="user-email-text">${r.buyer?.full_name||'-'} → ${r.traveler?.full_name||'-'}</div>
+        </div>
+        <span class="badge badge-${r.status}">${statusLabels[r.status]||r.status}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// ==================== UTILS ====================
+
+async function getSignedUrl(path) {
+  if (!path) return null;
+  const { data } = await db.storage.from('verification-docs').createSignedUrl(path, 3600);
+  return data?.signedUrl || null;
+}
+
+async function getSignedUrlFromFull(fullUrl) {
+  if (!fullUrl) return null;
+  const parts = fullUrl.split('/verification-docs/');
+  if (parts.length < 2) return null;
+  return await getSignedUrl(decodeURIComponent(parts[1]));
+}
+
+function photoBox(url, label) {
+  return `<div class="photo-wrap">
+    <div class="photo-lbl">${label}</div>
+    <div class="photo-box" ${url ? `onclick="openModal('${url}')"` : ''}>
+      ${url
+        ? `<img src="${url}" onerror="this.parentElement.innerHTML='<div class=no-photo>Sin foto</div>'" />`
+        : '<div class="no-photo">Sin foto</div>'}
+    </div>
+  </div>`;
+}
+
+function badge(status) {
+  const map = {
+    pending: ['badge-pending','⏳ Pendiente'],
+    verified: ['badge-verified','✅ Verificado'],
+    rejected: ['badge-rejected','❌ Rechazado'],
+    active: ['badge-active','✅ Activo'],
+    inactive: ['badge-inactive','🚫 Inactivo'],
+    accepted: ['badge-verified','✓ Aceptada'],
+    purchased: ['badge-purchased','🛍️ Comprada'],
+    received: ['badge-received','📬 Recibida'],
+    delivered: ['badge-delivered','📦 Entregada'],
+    completed: ['badge-completed','✅ Completada'],
+    open: ['badge-open','📢 Abierto'],
+    matched: ['badge-matched','✅ Match'],
+    cancelled: ['badge-cancelled','❌ Cancelado'],
+  };
+  const [cls, label] = map[status] || ['badge-pending', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function openModal(url) {
+  document.getElementById('modalImg').src = url;
+  document.getElementById('photoModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('photoModal').classList.remove('open');
+}
+
+// ==================== USERS / VERIFICATIONS ====================
+
+async function loadUsers() {
+  const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false });
+  allUsers = data || [];
+  renderVerifications();
+  renderUsersFullList();
+}
+
+async function renderVerifications() {
+  let users = allUsers;
+  if (verifTab === 'pending') users = allUsers.filter(u => u.verification_status === 'pending');
+  if (verifTab === 'verified') users = allUsers.filter(u => u.verified);
+  if (verifTab === 'rejected') users = allUsers.filter(u => u.verification_status === 'rejected');
+
+  const list = document.getElementById('verif-list');
+  if (users.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sin usuarios en esta categoría</div></div>';
+    return;
   }
 
-  async function loadAll() {
-    await Promise.all([loadUsers(), loadRequests(), loadTrips()]);
+  list.innerHTML = '<div class="empty">Cargando fotos...</div>';
+
+  const cards = await Promise.all(users.map(async u => {
+    const frontUrl = await getSignedUrl(u.id + '/cedula-frente.jpg');
+    const backUrl  = await getSignedUrl(u.id + '/cedula-reverso.jpg');
+    const selfieUrl = await getSignedUrl(u.id + '/selfie.jpg');
+
+    return `<div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-title">${u.full_name || 'Sin nombre'}</div>
+          <div class="card-sub">${u.email || ''} · ⭐ ${u.rating || '0.0'} · ${u.total_trips || 0} viajes · ${u.total_deliveries || 0} entregas</div>
+        </div>
+        ${badge(u.verification_status === 'verified' || u.verified ? 'verified' : u.verification_status || 'pending')}
+      </div>
+      <div class="photos-grid">
+        ${photoBox(frontUrl, '🪪 Cédula — Frente')}
+        ${photoBox(backUrl, '🪪 Cédula — Reverso')}
+        ${photoBox(selfieUrl, '🤳 Selfie')}
+      </div>
+      <div class="card-actions">
+        ${!u.verified ? `<button class="btn btn-green btn-sm" onclick="approveUser('${u.id}')">✓ Aprobar viajero</button>` : ''}
+        ${u.verified ? `<button class="btn btn-red btn-sm" onclick="revokeUser('${u.id}')">✕ Revocar</button>` : ''}
+        ${u.verification_status === 'pending' ? `<button class="btn btn-red btn-sm" onclick="rejectUser('${u.id}')">❌ Rechazar</button>` : ''}
+      </div>
+    </div>`;
+  }));
+
+  list.innerHTML = cards.join('');
+}
+
+function renderUsersFullList() {
+  const el = document.getElementById('users-full-list');
+  el.innerHTML = allUsers.map(u => `
+    <div class="user-list-item">
+      <div class="user-avatar">${(u.full_name || '?').charAt(0)}</div>
+      <div class="user-info">
+        <div class="user-name-text">${u.full_name || 'Sin nombre'}</div>
+        <div class="user-email-text">${u.email || ''}</div>
+        <div class="user-stats">⭐ ${u.rating || '0.0'} · ${u.total_trips || 0} viajes · ${u.total_deliveries || 0} entregas</div>
+      </div>
+      ${badge(u.verified ? 'verified' : u.verification_status || 'pending')}
+    </div>
+  `).join('') || '<div class="empty"><div class="empty-text">Sin usuarios</div></div>';
+}
+
+async function approveUser(userId) {
+  if (!confirm('¿Aprobar este usuario?')) return;
+  await db.from('profiles').update({ verified: true, verification_status: 'verified' }).eq('id', userId);
+  await loadUsers();
+  renderOverview();
+}
+
+async function rejectUser(userId) {
+  if (!confirm('¿Rechazar esta verificación?')) return;
+  await db.from('profiles').update({ verified: false, verification_status: 'rejected' }).eq('id', userId);
+  await loadUsers();
+  renderOverview();
+}
+
+async function revokeUser(userId) {
+  if (!confirm('¿Revocar la verificación?')) return;
+  await db.from('profiles').update({ verified: false, verification_status: 'unverified' }).eq('id', userId);
+  await loadUsers();
+  renderOverview();
+}
+
+// ==================== TRIPS ====================
+
+async function loadTrips() {
+  const { data } = await db
+    .from('trips')
+    .select('*, profiles(full_name, email), trip_items(name, price, billing_type, max_quantity)')
+    .order('created_at', { ascending: false });
+  allTrips = data || [];
+  renderTrips();
+}
+
+function renderTrips() {
+  let trips = allTrips;
+  if (tripTab === 'active') trips = allTrips.filter(t => t.active);
+  if (tripTab === 'inactive') trips = allTrips.filter(t => !t.active);
+
+  const list = document.getElementById('trips-list');
+  if (trips.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">✈️</div><div class="empty-text">Sin viajes en esta categoría</div></div>';
+    return;
   }
 
-  function setNav(nav) {
-    currentNav = nav;
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('nav-' + nav).classList.add('active');
-    document.getElementById('section-users').style.display = nav === 'users' ? 'block' : 'none';
-    document.getElementById('section-trips').style.display = nav === 'trips' ? 'block' : 'none';
-    document.getElementById('section-requests').style.display = nav === 'requests' ? 'block' : 'none';
+  list.innerHTML = trips.map(t => {
+    const items = (t.trip_items || []).map(i =>
+      `<div class="trip-item-row">
+        <span style="color:#F0F0FF">${i.name}</span>
+        <span style="color:#5A5A7A">$${i.price} / ${i.billing_type === 'lb' ? 'lb' : 'ítem'} · máx ${i.max_quantity}</span>
+      </div>`
+    ).join('');
+
+    return `<div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-title">🛫 ${t.origin_city || ''} → 🇪🇨 ${t.destination_city || ''}</div>
+          <div class="card-sub">📅 ${t.travel_date || ''} · 👤 ${t.profiles?.full_name || ''}</div>
+        </div>
+        ${badge(t.active ? 'active' : 'inactive')}
+      </div>
+      <div class="trip-items">${items || '<div style="color:#5A5A7A;font-size:12px">Sin ítems</div>'}</div>
+      <div class="info-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="info-cell"><div class="info-lbl">Dirección</div><div class="info-val">${t.address_street || '-'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Ciudad</div><div class="info-val">${t.address_city || '-'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Teléfono</div><div class="info-val">${t.address_phone || '-'}</div></div>
+      </div>
+      <div class="card-actions">
+        ${t.active
+          ? `<button class="btn btn-red btn-sm" onclick="toggleTrip('${t.id}', false)">🚫 Desactivar</button>`
+          : `<button class="btn btn-green btn-sm" onclick="toggleTrip('${t.id}', true)">✅ Activar</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleTrip(id, active) {
+  if (!confirm(active ? '¿Activar este viaje?' : '¿Desactivar este viaje?')) return;
+  await db.from('trips').update({ active }).eq('id', id);
+  await loadTrips();
+}
+
+// ==================== REQUESTS ====================
+
+async function loadRequests() {
+  const { data } = await db
+    .from('requests')
+    .select('*, trips(origin_city, destination_city, travel_date), request_items(name, quantity, price)')
+    .order('created_at', { ascending: false });
+
+  const requests = data || [];
+  const ids = [...new Set([...requests.map(r => r.buyer_id), ...requests.map(r => r.traveler_id)].filter(Boolean))];
+  let profilesMap = {};
+  if (ids.length > 0) {
+    const { data: profiles } = await db.from('profiles').select('id, full_name, email').in('id', ids);
+    (profiles || []).forEach(p => { profilesMap[p.id] = p; });
+  }
+  allRequests = requests.map(r => ({ ...r, buyer: profilesMap[r.buyer_id], traveler: profilesMap[r.traveler_id] }));
+  renderRequests();
+}
+
+async function renderRequests() {
+  let reqs = allRequests;
+  if (reqTab === 'active') reqs = allRequests.filter(r => ['pending','accepted','purchased','received','delivered'].includes(r.status));
+  if (reqTab === 'completed') reqs = allRequests.filter(r => r.status === 'completed');
+  if (reqTab === 'problem') reqs = allRequests.filter(r => r.status === 'cancelled' || r.status === 'rejected');
+
+  const list = document.getElementById('requests-list');
+  if (reqs.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Sin solicitudes en esta categoría</div></div>';
+    return;
   }
 
-  function setTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll('#section-users .tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    renderUsers();
+  list.innerHTML = '<div class="empty">Cargando fotos...</div>';
+
+  const cards = await Promise.all(reqs.map(async r => {
+    const p1 = await getSignedUrlFromFull(r.purchase_photo_url);
+    const p2 = await getSignedUrlFromFull(r.received_photo_url);
+    const p3 = await getSignedUrlFromFull(r.delivery_photo_url);
+    const items = (r.request_items || []).map(i => i.name + ' ×' + i.quantity).join(', ');
+
+    return `<div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-title">${items || 'Sin ítems'}</div>
+          <div class="card-sub">#${r.id.slice(0,8).toUpperCase()} · ${r.trips?.origin_city||''} → ${r.trips?.destination_city||''} · ${r.trips?.travel_date||''}</div>
+        </div>
+        ${badge(r.status)}
+      </div>
+      <div class="info-grid">
+        <div class="info-cell"><div class="info-lbl">Comprador</div><div class="info-val">${r.buyer?.full_name||'-'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Viajero</div><div class="info-val">${r.traveler?.full_name||'-'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Total</div><div class="info-val">$${r.total_amount?.toFixed(2)||'0.00'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Ganancia viajero</div><div class="info-val">$${r.total_traveler?.toFixed(2)||'0.00'}</div></div>
+      </div>
+      ${r.tracking_number ? `<div style="font-size:12px;color:#5A5A7A;margin-bottom:12px">📦 Tracking: <span style="color:#F0F0FF;font-weight:600">${r.tracking_number}</span></div>` : ''}
+      <div class="section-label">Fotos de respaldo</div>
+      <div class="photos-grid">
+        ${photoBox(p1, '🛍️ Confirmación compra')}
+        ${photoBox(p2, '📬 Recepción producto')}
+        ${photoBox(p3, '📸 Entrega al comprador')}
+      </div>
+    </div>`;
+  }));
+
+  list.innerHTML = cards.join('');
+}
+
+// ==================== OPEN REQUESTS ====================
+
+async function loadOpenRequests() {
+  const { data } = await db
+    .from('open_requests')
+    .select(`*, buyer:profiles!open_requests_buyer_id_fkey(full_name, email),
+      open_request_offers(id, fee, status, traveler_id,
+        traveler:profiles!open_request_offers_traveler_id_fkey(full_name, rating, total_trips))`)
+    .order('created_at', { ascending: false });
+  allOpenRequests = data || [];
+  renderOpenRequests();
+}
+
+function renderOpenRequests() {
+  let reqs = allOpenRequests;
+  if (openTab === 'open') reqs = allOpenRequests.filter(r => r.status === 'open');
+  if (openTab === 'matched') reqs = allOpenRequests.filter(r => r.status === 'matched');
+  if (openTab === 'cancelled') reqs = allOpenRequests.filter(r => r.status === 'cancelled');
+
+  const list = document.getElementById('open-requests-list');
+  if (reqs.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📢</div><div class="empty-text">Sin pedidos en esta categoría</div></div>';
+    return;
   }
 
-  function setReqTab(tab) {
-    currentReqTab = tab;
-    document.querySelectorAll('#section-requests .tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('req-tab-' + tab).classList.add('active');
-    renderRequests();
-  }
+  list.innerHTML = reqs.map(r => {
+    const daysLeft = Math.ceil((new Date(r.deadline) - Date.now()) / 86400000);
+    const offers = r.open_request_offers || [];
+    const acceptedOffer = offers.find(o => o.status === 'accepted');
+    const pendingOffers = offers.filter(o => o.status === 'pending');
 
-  function setTripTab(tab) {
-    currentTripTab = tab;
-    document.querySelectorAll('#section-trips .tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('trip-tab-' + tab).classList.add('active');
-    renderTrips();
-  }
+    const offersHtml = offers.length === 0
+      ? '<div style="color:#5A5A7A;font-size:12px;padding:8px">Sin ofertas aún</div>'
+      : offers.map(o => `
+        <div class="offer-row">
+          <div>
+            <div class="offer-name">${o.traveler?.full_name || '-'}</div>
+            <div class="offer-meta">⭐ ${o.traveler?.rating || '0.0'} · ${o.traveler?.total_trips || 0} viajes</div>
+          </div>
+          <div style="text-align:right">
+            <div class="offer-fee">$${o.fee?.toFixed(2)}</div>
+            ${badge(o.status)}
+          </div>
+        </div>
+      `).join('');
 
-  async function getSignedUrl(path) {
-    if (!path) return null;
-    const { data, error } = await db.storage
-      .from('verification-docs')
-      .createSignedUrl(path, 60 * 60);
-    if (error || !data) return null;
-    return data.signedUrl;
-  }
+    return `<div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-title">📦 ${r.product_name}</div>
+          <div class="card-sub">📍 ${r.origin_city}, ${r.origin_country} · 👤 ${r.buyer?.full_name || '-'}</div>
+        </div>
+        ${badge(r.status)}
+      </div>
+      <div class="info-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="info-cell"><div class="info-lbl">Fecha límite</div><div class="info-val">${r.deadline?.slice(0,10) || '-'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Días restantes</div><div class="info-val" style="color:${daysLeft <= 0 ? '#FF4B6E' : daysLeft <= 3 ? '#FF8C42' : '#1EEBB4'}">${daysLeft <= 0 ? 'Vencido' : daysLeft + 'd'}</div></div>
+        <div class="info-cell"><div class="info-lbl">Ofertas</div><div class="info-val">${offers.length} (${pendingOffers.length} pendientes)</div></div>
+      </div>
+      <div class="section-label">Ofertas recibidas</div>
+      <div class="offers-list">${offersHtml}</div>
+      ${acceptedOffer ? `<div style="background:rgba(30,235,180,0.07);border:1px solid rgba(30,235,180,0.2);border-radius:10px;padding:12px;font-size:13px;color:#1EEBB4">
+        ✅ Match con <strong>${acceptedOffer.traveler?.full_name}</strong> por <strong>$${acceptedOffer.fee?.toFixed(2)}</strong>
+      </div>` : ''}
+      <div class="card-actions" style="margin-top:12px">
+        ${r.status === 'open' ? `<button class="btn btn-red btn-sm" onclick="cancelOpenRequest('${r.id}')">❌ Cancelar pedido</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  async function getSignedUrlFromFull(fullUrl) {
-    if (!fullUrl) return null;
-    if (fullUrl.startsWith('file://')) return null;
-    const parts = fullUrl.split('/verification-docs/');
-    if (parts.length < 2) return null;
-    return await getSignedUrl(decodeURIComponent(parts[1]));
-  }
+async function cancelOpenRequest(id) {
+  if (!confirm('¿Cancelar este pedido abierto?')) return;
+  await db.from('open_requests').update({ status: 'cancelled' }).eq('id', id);
+  await loadOpenRequests();
+}
 
-  // ==================== USUARIOS ====================
-
-  async function loadUsers() {
-    const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false });
-    allUsers = data || [];
-    document.getElementById('statPending').textContent = allUsers.filter(u => u.verification_status === 'pending').length;
-    document.getElementById('statVerified').textContent = allUsers.filter(u => u.verified).length;
-    document.getElementById('statTotal').textContent = allUsers.length;
-    await renderUsers();
-  }
-
-  async function renderUsers() {
-    let users = allUsers;
-    if (currentTab === 'pending') users = allUsers.filter(u => u.verification_status === 'pending');
-    if (currentTab === 'verified') users = allUsers.filter(u => u.verified);
-
-    const list = document.getElementById('usersList');
-    if (users.length === 0) {
-      list.innerHTML = '<div class="empty">No hay usuarios en esta categoría</div>';
-      return;
-    }
-
-    list.innerHTML = '<div class="empty">Cargando fotos...</div>';
-
-    const cards = await Promise.all(users.map(async function(user) {
-      const frontUrl = await getSignedUrl(user.id + '/cedula-frente.jpg');
-      const backUrl = await getSignedUrl(user.id + '/cedula-reverso.jpg');
-      const selfieUrl = await getSignedUrl(user.id + '/selfie.jpg');
-
-      function photoBox(url, label) {
-        return '<div>' +
-          '<div class="photo-label">' + label + '</div>' +
-          '<div class="photo-box"' + (url ? ' onclick="openModal(\'' + url + '\')"' : '') + '>' +
-          (url ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" />' : '<div class="no-photo">Sin foto</div>') +
-          '</div></div>';
-      }
-
-      return '<div class="card">' +
-        '<div class="card-header">' +
-          '<div><div class="user-name">' + (user.full_name || 'Sin nombre') + '</div>' +
-          '<div class="user-email">' + (user.email || '') + '</div></div>' +
-          '<span class="badge ' + (user.verified ? 'badge-verified' : 'badge-pending') + '">' +
-          (user.verified ? '✅ Verificado' : '⏳ Pendiente') + '</span>' +
-        '</div>' +
-        '<div class="photos">' +
-          photoBox(frontUrl, 'Cédula — Frente') +
-          photoBox(backUrl, 'Cédula — Reverso') +
-          photoBox(selfieUrl, 'Selfie') +
-        '</div>' +
-        '<div class="actions">' +
-          (!user.verified ? '<button class="btn btn-green btn-small" onclick="approveUser(\'' + user.id + '\')">✓ Aprobar</button>' : '') +
-          (user.verified ? '<button class="btn btn-red btn-small" onclick="rejectUser(\'' + user.id + '\')">✕ Revocar</button>' : '') +
-        '</div></div>';
-    }));
-
-    list.innerHTML = cards.join('');
-  }
-
-  async function approveUser(userId) {
-    if (!confirm('¿Aprobar este viajero?')) return;
-    await db.from('profiles').update({ verified: true, verification_status: 'verified' }).eq('id', userId);
-    await loadUsers();
-  }
-
-  async function rejectUser(userId) {
-    if (!confirm('¿Revocar la verificación?')) return;
-    await db.from('profiles').update({ verified: false, verification_status: 'rejected' }).eq('id', userId);
-    await loadUsers();
-  }
-
-  // ==================== VIAJES ====================
-
-  async function loadTrips() {
-    const { data } = await db
-      .from('trips')
-      .select('*, profiles(full_name, email), trip_items(name, price, billing_type, max_quantity)')
-      .order('created_at', { ascending: false });
-    allTrips = data || [];
-    document.getElementById('statTrips').textContent = allTrips.length;
-    renderTrips();
-  }
-
-  function renderTrips() {
-    let trips = allTrips;
-    if (currentTripTab === 'active') trips = allTrips.filter(t => t.active);
-    if (currentTripTab === 'inactive') trips = allTrips.filter(t => !t.active);
-
-    const list = document.getElementById('tripsList');
-    if (trips.length === 0) {
-      list.innerHTML = '<div class="empty">No hay viajes en esta categoría</div>';
-      return;
-    }
-
-    list.innerHTML = trips.map(function(trip) {
-      const items = (trip.trip_items || []).map(i =>
-        '<div class="trip-item-row">' +
-          '<span style="color:#F0F0FF">' + i.name + '</span>' +
-          '<span style="color:#8A8AAA">$' + i.price + ' / ' + (i.billing_type === 'lb' ? 'lb' : 'ítem') + ' · máx ' + i.max_quantity + '</span>' +
-        '</div>'
-      ).join('');
-
-      return '<div class="card">' +
-        '<div class="card-header">' +
-          '<div>' +
-            '<div class="user-name">' + (trip.origin_city || '') + ' → 🇪🇨 ' + (trip.destination_city || '') + '</div>' +
-            '<div class="user-email">✈️ ' + (trip.travel_date || '') + ' · ' + (trip.profiles?.full_name || '') + '</div>' +
-          '</div>' +
-          '<span class="badge ' + (trip.active ? 'badge-active' : 'badge-inactive') + '">' +
-          (trip.active ? '✅ Activo' : '🚫 Inactivo') + '</span>' +
-        '</div>' +
-        '<div class="trip-items">' + (items || '<div style="color:#5A5A7A;font-size:12px">Sin ítems</div>') + '</div>' +
-        '<div class="actions">' +
-          (trip.active
-            ? '<button class="btn btn-red btn-small" onclick="deactivateTrip(\'' + trip.id + '\')">🚫 Desactivar viaje</button>'
-            : '<button class="btn btn-green btn-small" onclick="activateTrip(\'' + trip.id + '\')">✅ Reactivar viaje</button>') +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  async function deactivateTrip(tripId) {
-    if (!confirm('¿Desactivar este viaje? Ya no aparecerá en el inicio para nuevos compradores.')) return;
-    await db.from('trips').update({ active: false }).eq('id', tripId);
-    await loadTrips();
-  }
-
-  async function activateTrip(tripId) {
-    if (!confirm('¿Reactivar este viaje?')) return;
-    await db.from('trips').update({ active: true }).eq('id', tripId);
-    await loadTrips();
-  }
-
-  // ==================== RESPALDOS ====================
-
-  async function loadRequests() {
-    const { data, error } = await db
-      .from('requests')
-      .select('*, trips(origin_city, destination_city, travel_date), request_items(name, quantity, price)')
-      .order('created_at', { ascending: false });
-
-    if (error) { console.log('Error requests:', JSON.stringify(error)); return; }
-
-    const requests = data || [];
-    const profileIds = [...new Set([
-      ...requests.map(r => r.buyer_id),
-      ...requests.map(r => r.traveler_id)
-    ].filter(Boolean))];
-
-    let profilesMap = {};
-    if (profileIds.length > 0) {
-      const { data: profiles } = await db.from('profiles').select('id, full_name, email').in('id', profileIds);
-      (profiles || []).forEach(p => { profilesMap[p.id] = p; });
-    }
-
-    allRequests = requests.map(r => ({
-      ...r,
-      buyer: profilesMap[r.buyer_id] || null,
-      traveler: profilesMap[r.traveler_id] || null,
-    }));
-
-    document.getElementById('statRequests').textContent = allRequests.length;
-    renderRequests();
-  }
-
-  async function renderRequests() {
-    let requests = allRequests;
-    if (currentReqTab === 'active') requests = allRequests.filter(r => ['pending','accepted','purchased','received','delivered'].includes(r.status));
-    if (currentReqTab === 'completed') requests = allRequests.filter(r => r.status === 'completed');
-
-    const list = document.getElementById('requestsList');
-    if (requests.length === 0) {
-      list.innerHTML = '<div class="empty">No hay solicitudes en esta categoría</div>';
-      return;
-    }
-
-    list.innerHTML = '<div class="empty">Cargando respaldos...</div>';
-
-    const statusLabels = {
-      pending: '⏳ Pendiente', accepted: '✓ Aceptada', purchased: '🛍️ Compra confirmada',
-      received: '📬 Producto recibido', delivered: '📦 Foto subida', completed: '✅ Completada',
-      rejected: '✕ Rechazada', cancelled: '✕ Cancelada'
-    };
-    const statusBadge = {
-      pending: 'badge-pending', accepted: 'badge-verified', purchased: 'badge-purchased',
-      received: 'badge-received', delivered: 'badge-delivered', completed: 'badge-completed',
-      rejected: 'badge-pending', cancelled: 'badge-pending'
-    };
-
-    const cards = await Promise.all(requests.map(async function(req) {
-      const purchasePhotoUrl = await getSignedUrlFromFull(req.purchase_photo_url);
-      const receivedPhotoUrl = await getSignedUrlFromFull(req.received_photo_url);
-      const deliveryPhotoUrl = await getSignedUrlFromFull(req.delivery_photo_url);
-
-      function photoBox(url, label) {
-        return '<div>' +
-          '<div class="photo-label">' + label + '</div>' +
-          '<div class="photo-box"' + (url ? ' onclick="openModal(\'' + url + '\')"' : '') + '>' +
-          (url ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=\'<div class=no-photo>Sin foto</div>\'" />' : '<div class="no-photo">Sin foto</div>') +
-          '</div></div>';
-      }
-
-      const items = (req.request_items || []).map(i => i.name + ' ×' + i.quantity).join(', ');
-
-      return '<div class="card">' +
-        '<div class="card-header">' +
-          '<div>' +
-            '<div class="user-name">' + (items || 'Sin ítems') + '</div>' +
-            '<div class="user-email">#' + req.id.slice(0, 8).toUpperCase() + ' · ' + (req.trips?.origin_city || '') + ' → ' + (req.trips?.destination_city || '') + '</div>' +
-          '</div>' +
-          '<span class="badge ' + (statusBadge[req.status] || '') + '">' + (statusLabels[req.status] || req.status) + '</span>' +
-        '</div>' +
-        '<div class="request-info">' +
-          '<div class="request-info-item"><div class="request-info-label">Comprador</div><div class="request-info-value">' + (req.buyer?.full_name || '-') + '</div></div>' +
-          '<div class="request-info-item"><div class="request-info-label">Viajero</div><div class="request-info-value">' + (req.traveler?.full_name || '-') + '</div></div>' +
-          '<div class="request-info-item"><div class="request-info-label">Total</div><div class="request-info-value">$' + (req.total_amount?.toFixed(2) || '0.00') + '</div></div>' +
-          '<div class="request-info-item"><div class="request-info-label">Fecha vuelo</div><div class="request-info-value">' + (req.trips?.travel_date || '-') + '</div></div>' +
-        '</div>' +
-        '<div class="section-divider">Fotos de respaldo</div>' +
-        '<div class="photos-3">' +
-          photoBox(purchasePhotoUrl, '🛍️ Confirmación compra') +
-          photoBox(receivedPhotoUrl, '📬 Recepción producto') +
-          photoBox(deliveryPhotoUrl, '📸 Entrega al comprador') +
-        '</div>' +
-        (req.tracking_number ? '<div style="font-size:11px;color:#5A5A7A;margin-top:4px;">Tracking: <span style="color:#F0F0FF">' + req.tracking_number + '</span></div>' : '') +
-      '</div>';
-    }));
-
-    list.innerHTML = cards.join('');
-  }
-
-  function openModal(url) {
-    document.getElementById('modalImg').src = url;
-    document.getElementById('photoModal').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('photoModal').classList.remove('open');
-  }
-
-  document.getElementById('loginBtn').addEventListener('click', checkPassword);
-  document.getElementById('logoutBtn').addEventListener('click', logout);
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  document.getElementById('photoModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-  document.getElementById('tab-pending').addEventListener('click', function() { setTab('pending'); });
-  document.getElementById('tab-verified').addEventListener('click', function() { setTab('verified'); });
-  document.getElementById('tab-all').addEventListener('click', function() { setTab('all'); });
-  document.getElementById('req-tab-all').addEventListener('click', function() { setReqTab('all'); });
-  document.getElementById('req-tab-active').addEventListener('click', function() { setReqTab('active'); });
-  document.getElementById('req-tab-completed').addEventListener('click', function() { setReqTab('completed'); });
-  document.getElementById('trip-tab-active').addEventListener('click', function() { setTripTab('active'); });
-  document.getElementById('trip-tab-inactive').addEventListener('click', function() { setTripTab('inactive'); });
-  document.getElementById('trip-tab-all').addEventListener('click', function() { setTripTab('all'); });
+// ==================== MODAL ====================
+document.getElementById('photoModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 </script>
 </body>
 </html>
